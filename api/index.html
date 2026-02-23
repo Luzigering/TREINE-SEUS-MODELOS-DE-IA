@@ -1,0 +1,502 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Assistente IA - Especialista em Operações</title>
+    
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+
+    <style>
+        :root {
+            --primary: #a855f7;
+            --secondary: #ec4899;
+            --tertiary: #3b82f6;
+            --glass-bg: rgba(255, 255, 255, 0.15);
+            --glass-border: rgba(255, 255, 255, 0.3);
+            --text-main: #ffffff;
+            --text-muted: rgba(255, 255, 255, 0.8);
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Outfit', sans-serif;
+        }
+
+        body {
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            gap: 25px;
+            background: linear-gradient(135deg, #4f46e5, #a855f7, #ec4899);
+            background-size: 300% 300%;
+            animation: gradientBG 15s ease infinite;
+            overflow-x: hidden;
+            padding: 20px;
+            color: var(--text-main);
+        }
+
+        @keyframes gradientBG {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        .bg-blob {
+            position: absolute;
+            border-radius: 50%;
+            filter: blur(80px);
+            z-index: -1;
+            opacity: 0.6;
+        }
+        
+        .blob-1 { top: -10%; left: -10%; width: 40vw; height: 40vw; background: #3b82f6; animation: float 10s infinite alternate; }
+        .blob-2 { bottom: -10%; right: -10%; width: 35vw; height: 35vw; background: #ec4899; animation: float 8s infinite alternate-reverse; }
+
+        @keyframes float {
+            0% { transform: translateY(0) scale(1); }
+            100% { transform: translateY(-40px) scale(1.1); }
+        }
+
+        .glass-card {
+            background: var(--glass-bg);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid var(--glass-border);
+            border-radius: 24px;
+            padding: 40px;
+            width: 100%;
+            max-width: 600px;
+            box-shadow: 0 30px 60px rgba(0, 0, 0, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.4);
+            display: flex;
+            flex-direction: column;
+            gap: 25px;
+            transition: all 0.3s ease;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 10px;
+        }
+
+        .title-wrapper {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+            margin-bottom: 8px;
+        }
+
+        .title {
+            font-size: 28px;
+            font-weight: 600;
+            letter-spacing: -0.5px;
+        }
+
+        .sparkle-icon {
+            color: #fbbf24; 
+            fill: #fbbf24;
+            animation: pulse-glow 2s infinite alternate;
+        }
+
+        @keyframes pulse-glow {
+            0% { filter: drop-shadow(0 0 5px rgba(251, 191, 36, 0.5)); transform: scale(1); }
+            100% { filter: drop-shadow(0 0 15px rgba(251, 191, 36, 0.9)); transform: scale(1.1); }
+        }
+
+        .subtitle {
+            font-size: 16px;
+            color: var(--text-muted);
+            font-weight: 300;
+        }
+
+        #text-input {
+            width: 100%;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid var(--glass-border);
+            border-radius: 16px;
+            padding: 16px;
+            color: white;
+            font-size: 16px;
+            resize: vertical;
+            min-height: 80px;
+            outline: none;
+            transition: all 0.3s ease;
+            font-family: 'Outfit', sans-serif;
+            margin-bottom: 15px;
+        }
+
+        #text-input:focus {
+            border-color: #a855f7;
+            background: rgba(255, 255, 255, 0.1);
+            box-shadow: 0 0 15px rgba(168, 85, 247, 0.2);
+        }
+
+        #text-input::placeholder {
+            color: rgba(255, 255, 255, 0.5);
+        }
+
+        .upload-area {
+            border: 2px dashed var(--glass-border);
+            border-radius: 16px;
+            padding: 40px 20px;
+            text-align: center;
+            background: rgba(255, 255, 255, 0.05);
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .upload-area:hover, .upload-area.dragover {
+            background: rgba(255, 255, 255, 0.15);
+            border-color: #fff;
+            transform: translateY(-2px);
+        }
+
+        .upload-area input[type="file"] {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            opacity: 0;
+            cursor: pointer;
+        }
+
+        .upload-icon {
+            margin-bottom: 15px;
+            color: #fff;
+            width: 48px;
+            height: 48px;
+        }
+
+        .upload-text {
+            font-size: 18px;
+            font-weight: 500;
+            margin-bottom: 5px;
+        }
+
+        .upload-hint {
+            font-size: 14px;
+            color: var(--text-muted);
+        }
+
+        #image-preview-container {
+            display: none;
+            position: relative;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+        }
+
+        #image-preview {
+            width: 100%;
+            max-height: 250px;
+            object-fit: cover;
+            display: block;
+        }
+
+        #remove-image {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background: rgba(0,0,0,0.6);
+            border: none;
+            border-radius: 50%;
+            width: 32px;
+            height: 32px;
+            color: white;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: background 0.2s;
+        }
+
+        #remove-image:hover {
+            background: rgba(239, 68, 68, 0.9);
+        }
+
+        .btn-magic {
+            background: linear-gradient(90deg, #ec4899, #a855f7);
+            border: none;
+            border-radius: 12px;
+            padding: 16px 24px;
+            color: white;
+            font-size: 18px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 10px 20px rgba(168, 85, 247, 0.3);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            width: 100%;
+        }
+
+        .btn-magic:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 15px 30px rgba(168, 85, 247, 0.5);
+            background: linear-gradient(90deg, #f472b6, #c084fc);
+        }
+
+        .btn-magic:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+
+        .loader {
+            display: none;
+            width: 24px;
+            height: 24px;
+            border: 3px solid rgba(255,255,255,0.3);
+            border-radius: 50%;
+            border-top-color: #fff;
+            animation: spin 1s ease-in-out infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        #results-area {
+            display: none; 
+            background: rgba(0, 0, 0, 0.3); 
+            border-radius: 16px; 
+            padding: 25px;
+            animation: slideUp 0.5s ease-out; 
+            font-size: 16px; 
+            line-height: 1.6;
+            max-height: 400px; 
+            overflow-y: auto;
+        }
+
+        #results-area::-webkit-scrollbar { width: 8px; }
+        #results-area::-webkit-scrollbar-track { background: rgba(255, 255, 255, 0.05); border-radius: 10px; }
+        #results-area::-webkit-scrollbar-thumb { background: rgba(255, 255, 255, 0.3); border-radius: 10px; }
+        #results-area::-webkit-scrollbar-thumb:hover { background: rgba(255, 255, 255, 0.5); }
+
+        @keyframes slideUp {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        #results-area h1, #results-area h2, #results-area h3 { color: #fbbf24; margin-top: 15px; margin-bottom: 10px; font-weight: 600; }
+        #results-area h1:first-child, #results-area h2:first-child { margin-top: 0; }
+        #results-area p { margin-bottom: 12px; }
+        #results-area ul, #results-area ol { margin-bottom: 15px; padding-left: 25px; }
+        #results-area li { margin-bottom: 5px; }
+        #results-area strong { color: #fff; font-weight: 600; }
+        #results-area code { background: rgba(255,255,255,0.1); padding: 2px 6px; border-radius: 4px; font-family: monospace; font-size: 14px;}
+
+        /* Estilo da Assinatura (Footer) */
+        .dev-footer {
+            color: rgba(255, 255, 255, 0.6);
+            font-size: 14px;
+            text-align: center;
+            z-index: 10;
+        }
+
+        .dev-footer a {
+            color: #60a5fa; /* Equivalente ao text-blue-400 */
+            font-weight: 700;
+            text-decoration: none;
+            transition: color 0.3s ease;
+        }
+
+        .dev-footer a:hover {
+            color: #93c5fd;
+            text-decoration: underline;
+        }
+
+    </style>
+</head>
+<body>
+
+    <div class="bg-blob blob-1"></div>
+    <div class="bg-blob blob-2"></div>
+
+    <div class="glass-card">
+        <div class="header">
+            <div class="title-wrapper">
+                <h1 class="title">Assistente Personalizável</h1>
+                <i data-lucide="sparkles" class="sparkle-icon"></i>
+            </div>
+            <p class="subtitle">Modelo: <strong>Especialista em Operações (NFE)</strong></p>
+        </div>
+
+        <textarea id="text-input" placeholder="Digite seu comando, cole um texto ou anexe uma imagem abaixo..."></textarea>
+
+        <div class="upload-area" id="drop-zone">
+            <input type="file" id="file-input" accept="image/*">
+            <i data-lucide="cloud-upload" class="upload-icon"></i>
+            <h3 class="upload-text">Envie a Nota Fiscal</h3>
+            <p class="upload-hint">Arraste a imagem para cá ou clique para procurar</p>
+        </div>
+
+        <div id="image-preview-container">
+            <img id="image-preview" src="" alt="Preview">
+            <button id="remove-image" title="Remover imagem">
+                <i data-lucide="x" style="width: 18px; height: 18px;"></i>
+            </button>
+        </div>
+
+        <button class="btn-magic" id="btn-analyze" disabled>
+            <span id="btn-text">Consultar com IA</span>
+            <i data-lucide="wand-2" id="btn-icon"></i>
+            <div class="loader" id="loader"></div>
+        </button>
+
+        <div id="results-area"></div>
+    </div>
+
+    <footer class="dev-footer">
+        Desenvolvido por <a href="https://github.com/Luzigering" target="_blank">Gering</a> • Tecnologia e operações
+    </footer>
+
+    <script>
+        lucide.createIcons();
+
+        const dropZone = document.getElementById('drop-zone');
+        const fileInput = document.getElementById('file-input');
+        const previewContainer = document.getElementById('image-preview-container');
+        const imagePreview = document.getElementById('image-preview');
+        const removeImageBtn = document.getElementById('remove-image');
+        const btnAnalyze = document.getElementById('btn-analyze');
+        const btnText = document.getElementById('btn-text');
+        const btnIcon = document.getElementById('btn-icon');
+        const loader = document.getElementById('loader');
+        const resultsArea = document.getElementById('results-area');
+        const textInput = document.getElementById('text-input');
+
+        let currentFile = null;
+
+        function checkSubmitState() {
+            if (currentFile || textInput.value.trim() !== '') {
+                btnAnalyze.disabled = false;
+            } else {
+                btnAnalyze.disabled = true;
+            }
+        }
+
+        textInput.addEventListener('input', checkSubmitState);
+
+        ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+            dropZone.addEventListener(eventName, preventDefaults, false);
+        });
+
+        function preventDefaults(e) {
+            e.preventDefault();
+            e.stopPropagation();
+        }
+
+        ['dragenter', 'dragover'].forEach(eventName => {
+            dropZone.addEventListener(eventName, () => dropZone.classList.add('dragover'), false);
+        });
+
+        ['dragleave', 'drop'].forEach(eventName => {
+            dropZone.addEventListener(eventName, () => dropZone.classList.remove('dragover'), false);
+        });
+
+        dropZone.addEventListener('drop', (e) => {
+            const dt = e.dataTransfer;
+            const files = dt.files;
+            handleFiles(files);
+        });
+
+        fileInput.addEventListener('change', function() {
+            handleFiles(this.files);
+        });
+
+        function handleFiles(files) {
+            if (files.length > 0) {
+                const file = files[0];
+                if (file.type.startsWith('image/')) {
+                    currentFile = file;
+                    showPreview(file);
+                } else {
+                    alert('Por favor, envie apenas arquivos de imagem.');
+                }
+            }
+        }
+
+        function showPreview(file) {
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                imagePreview.src = e.target.result;
+                dropZone.style.display = 'none';
+                previewContainer.style.display = 'block';
+                checkSubmitState();
+                resultsArea.style.display = 'none'; 
+            }
+            reader.readAsDataURL(file);
+        }
+
+        removeImageBtn.addEventListener('click', () => {
+            currentFile = null;
+            fileInput.value = '';
+            imagePreview.src = '';
+            previewContainer.style.display = 'none';
+            dropZone.style.display = 'block';
+            checkSubmitState();
+            resultsArea.style.display = 'none';
+        });
+
+        btnAnalyze.addEventListener('click', async () => {
+            if (!currentFile && textInput.value.trim() === '') return;
+
+            btnAnalyze.disabled = true;
+            btnText.innerText = 'Processando...';
+            btnIcon.style.display = 'none';
+            loader.style.display = 'block';
+            resultsArea.style.display = 'none';
+
+            const formData = new FormData();
+            if (currentFile) {
+                formData.append('file', currentFile);
+            }
+            if (textInput.value.trim() !== '') {
+                formData.append('texto', textInput.value.trim());
+            }
+
+            try {
+                const response = await fetch('/api/consultar-assistente', {
+                    method: 'POST',
+                    body: formData
+                });
+
+                const data = await response.json();
+
+                if (data.sucesso) {
+                    resultsArea.innerHTML = marked.parse(data.resposta);
+                    resultsArea.style.display = 'block';
+                } else {
+                    alert('Erro na análise: ' + data.erro);
+                }
+
+            } catch (error) {
+                console.error('Erro na requisição:', error);
+                alert('Falha ao conectar com o servidor. Verifique se a API está rodando.');
+            } finally {
+                btnAnalyze.disabled = false;
+                btnText.innerText = 'Consultar com IA';
+                btnIcon.style.display = 'block';
+                loader.style.display = 'none';
+            }
+        });
+    </script>
+</body>
+</html>
