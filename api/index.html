@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Assistente IA - Especialista em Operações</title>
+    <title>Gemma AI - Assistente Treinado</title>
     
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -14,13 +14,16 @@
 
     <style>
         :root {
-            --primary: #a855f7;
-            --secondary: #ec4899;
-            --tertiary: #3b82f6;
-            --glass-bg: rgba(255, 255, 255, 0.15);
-            --glass-border: rgba(255, 255, 255, 0.3);
-            --text-main: #ffffff;
-            --text-muted: rgba(255, 255, 255, 0.8);
+            --cyan: #06b6d4;
+            --teal: #14b8a6;
+            --blue: #3b82f6;
+            --dark-bg: #0f172a;
+            --glass-bg: rgba(15, 23, 42, 0.6);
+            --glass-border: rgba(6, 182, 212, 0.3);
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
+            --error: #ef4444;
+            --success: #10b981;
         }
 
         * {
@@ -36,327 +39,283 @@
             flex-direction: column;
             justify-content: center;
             align-items: center;
-            gap: 25px;
-            background: linear-gradient(135deg, #4f46e5, #a855f7, #ec4899);
-            background-size: 300% 300%;
-            animation: gradientBG 15s ease infinite;
-            overflow-x: hidden;
+            background: linear-gradient(135deg, #020617, #0f172a, #082f49);
             padding: 20px;
             color: var(--text-main);
+            overflow-x: hidden;
+            position: relative;
+            gap: 20px;
         }
 
-        @keyframes gradientBG {
-            0% { background-position: 0% 50%; }
-            50% { background-position: 100% 50%; }
-            100% { background-position: 0% 50%; }
-        }
-
-        .bg-blob {
+        .glow {
             position: absolute;
+            width: 40vw;
+            height: 40vw;
+            background: radial-gradient(circle, rgba(6,182,212,0.15) 0%, rgba(0,0,0,0) 70%);
             border-radius: 50%;
-            filter: blur(80px);
             z-index: -1;
-            opacity: 0.6;
+            animation: pulse 8s infinite alternate;
         }
-        
-        .blob-1 { top: -10%; left: -10%; width: 40vw; height: 40vw; background: #3b82f6; animation: float 10s infinite alternate; }
-        .blob-2 { bottom: -10%; right: -10%; width: 35vw; height: 35vw; background: #ec4899; animation: float 8s infinite alternate-reverse; }
+        .glow-1 { top: -10%; left: -10%; }
+        .glow-2 { bottom: -10%; right: -10%; background: radial-gradient(circle, rgba(20,184,166,0.15) 0%, rgba(0,0,0,0) 70%); }
 
-        @keyframes float {
-            0% { transform: translateY(0) scale(1); }
-            100% { transform: translateY(-40px) scale(1.1); }
+        @keyframes pulse {
+            0% { transform: scale(1); opacity: 0.5; }
+            100% { transform: scale(1.2); opacity: 1; }
         }
 
         .glass-card {
             background: var(--glass-bg);
-            backdrop-filter: blur(16px);
-            -webkit-backdrop-filter: blur(16px);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
             border: 1px solid var(--glass-border);
             border-radius: 24px;
             padding: 40px;
             width: 100%;
-            max-width: 600px;
-            box-shadow: 0 30px 60px rgba(0, 0, 0, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.4);
+            max-width: 650px;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
             display: flex;
             flex-direction: column;
-            gap: 25px;
-            transition: all 0.3s ease;
+            gap: 20px;
+            z-index: 10;
         }
 
-        .header {
-            text-align: center;
-            margin-bottom: 10px;
-        }
+        .header { text-align: center; margin-bottom: 10px; }
+        .title { font-size: 32px; font-weight: 700; background: linear-gradient(to right, var(--cyan), var(--teal)); -webkit-background-clip: text; color: transparent; display: flex; align-items: center; justify-content: center; gap: 10px; }
+        .subtitle { font-size: 15px; color: var(--text-muted); margin-top: 5px; }
 
-        .title-wrapper {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 12px;
-            margin-bottom: 8px;
-        }
-
-        .title {
-            font-size: 28px;
-            font-weight: 600;
-            letter-spacing: -0.5px;
-        }
-
-        .sparkle-icon {
-            color: #fbbf24; 
-            fill: #fbbf24;
-            animation: pulse-glow 2s infinite alternate;
-        }
-
-        @keyframes pulse-glow {
-            0% { filter: drop-shadow(0 0 5px rgba(251, 191, 36, 0.5)); transform: scale(1); }
-            100% { filter: drop-shadow(0 0 15px rgba(251, 191, 36, 0.9)); transform: scale(1.1); }
-        }
-
-        .subtitle {
-            font-size: 16px;
-            color: var(--text-muted);
-            font-weight: 300;
-        }
-
-        #text-input {
-            width: 100%;
-            background: rgba(255, 255, 255, 0.05);
-            border: 1px solid var(--glass-border);
-            border-radius: 16px;
-            padding: 16px;
-            color: white;
-            font-size: 16px;
-            resize: vertical;
-            min-height: 80px;
-            outline: none;
-            transition: all 0.3s ease;
-            font-family: 'Outfit', sans-serif;
-            margin-bottom: 15px;
-        }
-
-        #text-input:focus {
-            border-color: #a855f7;
-            background: rgba(255, 255, 255, 0.1);
-            box-shadow: 0 0 15px rgba(168, 85, 247, 0.2);
-        }
-
-        #text-input::placeholder {
-            color: rgba(255, 255, 255, 0.5);
-        }
-
-        .upload-area {
+        .doc-upload {
             border: 2px dashed var(--glass-border);
             border-radius: 16px;
-            padding: 40px 20px;
+            padding: 30px;
             text-align: center;
-            background: rgba(255, 255, 255, 0.05);
+            background: rgba(6, 182, 212, 0.05);
             cursor: pointer;
             transition: all 0.3s ease;
             position: relative;
-            overflow: hidden;
         }
 
-        .upload-area:hover, .upload-area.dragover {
-            background: rgba(255, 255, 255, 0.15);
-            border-color: #fff;
-            transform: translateY(-2px);
+        .doc-upload:hover {
+            background: rgba(6, 182, 212, 0.1);
+            border-color: var(--cyan);
         }
 
-        .upload-area input[type="file"] {
-            position: absolute;
-            top: 0;
-            left: 0;
+        .doc-upload input { display: none; }
+        .upload-icon { color: var(--cyan); width: 40px; height: 40px; margin-bottom: 10px; }
+        .file-list { margin-top: 15px; text-align: left; display: none; background: rgba(0,0,0,0.3); border-radius: 8px; padding: 10px;}
+        .file-item { display: flex; align-items: center; gap: 10px; font-size: 14px; color: var(--text-main); padding: 5px 0;}
+        .file-item i { width: 16px; height: 16px; color: var(--teal); }
+
+        .input-group { display: flex; flex-direction: column; gap: 8px; }
+        .input-group label { font-size: 14px; font-weight: 500; color: var(--cyan); display: flex; align-items: center; gap: 6px; }
+        
+        textarea, .custom-input, .custom-select {
             width: 100%;
-            height: 100%;
-            opacity: 0;
-            cursor: pointer;
-        }
-
-        .upload-icon {
-            margin-bottom: 15px;
-            color: #fff;
-            width: 48px;
-            height: 48px;
-        }
-
-        .upload-text {
-            font-size: 18px;
-            font-weight: 500;
-            margin-bottom: 5px;
-        }
-
-        .upload-hint {
-            font-size: 14px;
-            color: var(--text-muted);
-        }
-
-        #image-preview-container {
-            display: none;
-            position: relative;
+            background: rgba(0, 0, 0, 0.2);
+            border: 1px solid var(--glass-border);
             border-radius: 12px;
-            overflow: hidden;
-            box-shadow: 0 10px 20px rgba(0,0,0,0.1);
-        }
-
-        #image-preview {
-            width: 100%;
-            max-height: 250px;
-            object-fit: cover;
-            display: block;
-        }
-
-        #remove-image {
-            position: absolute;
-            top: 10px;
-            right: 10px;
-            background: rgba(0,0,0,0.6);
-            border: none;
-            border-radius: 50%;
-            width: 32px;
-            height: 32px;
+            padding: 16px;
             color: white;
+            font-size: 15px;
+            outline: none;
+            transition: all 0.3s;
+            font-family: 'Outfit', sans-serif;
+        }
+        
+        textarea { resize: vertical; }
+
+        textarea:focus, .custom-input:focus, .custom-select:focus {
+            border-color: var(--cyan);
+            box-shadow: 0 0 15px rgba(6, 182, 212, 0.2);
+        }
+        
+        .custom-select option { background: var(--dark-bg); color: white; }
+        .flex-row { display: flex; gap: 10px; }
+
+        .btn-icon {
+            background: rgba(6, 182, 212, 0.1);
+            border: 1px solid var(--glass-border);
+            border-radius: 12px;
+            color: white;
+            padding: 0 15px;
             cursor: pointer;
+            transition: all 0.3s;
             display: flex;
             align-items: center;
             justify-content: center;
-            transition: background 0.2s;
         }
 
-        #remove-image:hover {
-            background: rgba(239, 68, 68, 0.9);
+        .btn-icon:hover { background: rgba(6, 182, 212, 0.3); border-color: var(--cyan); }
+
+        .new-persona-box {
+            display: none;
+            background: rgba(0, 0, 0, 0.3);
+            border: 1px dashed var(--cyan);
+            border-radius: 12px;
+            padding: 15px;
+            margin-top: 5px;
+            flex-direction: column;
+            gap: 10px;
+            animation: slideDown 0.3s ease-out;
         }
 
-        .btn-magic {
-            background: linear-gradient(90deg, #ec4899, #a855f7);
+        @keyframes slideDown { from { opacity: 0; transform: translateY(-10px); } to { opacity: 1; transform: translateY(0); } }
+
+        .btn-train {
+            background: linear-gradient(135deg, var(--blue), var(--cyan));
             border: none;
             border-radius: 12px;
-            padding: 16px 24px;
+            padding: 16px;
             color: white;
             font-size: 18px;
             font-weight: 600;
             cursor: pointer;
             transition: all 0.3s ease;
-            box-shadow: 0 10px 20px rgba(168, 85, 247, 0.3);
             display: flex;
             align-items: center;
             justify-content: center;
             gap: 10px;
+            margin-top: 10px;
             width: 100%;
         }
 
-        .btn-magic:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 15px 30px rgba(168, 85, 247, 0.5);
-            background: linear-gradient(90deg, #f472b6, #c084fc);
-        }
-
-        .btn-magic:disabled {
-            opacity: 0.6;
-            cursor: not-allowed;
-            transform: none;
-            box-shadow: none;
-        }
+        .btn-train.small { padding: 12px; font-size: 15px; margin-top: 0; }
+        .btn-train:hover:not(:disabled) { transform: translateY(-2px); box-shadow: 0 10px 20px rgba(6, 182, 212, 0.3); }
+        .btn-train:disabled { opacity: 0.6; cursor: not-allowed; }
 
         .loader {
-            display: none;
-            width: 24px;
-            height: 24px;
-            border: 3px solid rgba(255,255,255,0.3);
-            border-radius: 50%;
-            border-top-color: #fff;
-            animation: spin 1s ease-in-out infinite;
+            display: none; width: 20px; height: 20px; border: 3px solid rgba(255,255,255,0.3);
+            border-radius: 50%; border-top-color: #fff; animation: spin 1s ease-in-out infinite;
         }
-
-        @keyframes spin {
-            to { transform: rotate(360deg); }
-        }
+        @keyframes spin { to { transform: rotate(360deg); } }
 
         #results-area {
-            display: none; 
-            background: rgba(0, 0, 0, 0.3); 
-            border-radius: 16px; 
-            padding: 25px;
-            animation: slideUp 0.5s ease-out; 
-            font-size: 16px; 
-            line-height: 1.6;
-            max-height: 400px; 
-            overflow-y: auto;
+            display: none; background: rgba(0, 0, 0, 0.4); border: 1px solid rgba(6, 182, 212, 0.2);
+            border-radius: 16px; padding: 25px; animation: slideUp 0.5s ease-out; font-size: 15px; 
+            line-height: 1.6; max-height: 400px; overflow-y: auto; color: var(--text-main);
         }
 
-        #results-area::-webkit-scrollbar { width: 8px; }
-        #results-area::-webkit-scrollbar-track { background: rgba(255, 255, 255, 0.05); border-radius: 10px; }
-        #results-area::-webkit-scrollbar-thumb { background: rgba(255, 255, 255, 0.3); border-radius: 10px; }
-        #results-area::-webkit-scrollbar-thumb:hover { background: rgba(255, 255, 255, 0.5); }
+        #results-area::-webkit-scrollbar { width: 6px; }
+        #results-area::-webkit-scrollbar-track { background: rgba(0, 0, 0, 0.2); border-radius: 10px; }
+        #results-area::-webkit-scrollbar-thumb { background: var(--cyan); border-radius: 10px; }
 
-        @keyframes slideUp {
-            from { opacity: 0; transform: translateY(20px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
+        @keyframes slideUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
 
-        #results-area h1, #results-area h2, #results-area h3 { color: #fbbf24; margin-top: 15px; margin-bottom: 10px; font-weight: 600; }
+        #results-area h1, #results-area h2, #results-area h3 { color: var(--cyan); margin-top: 15px; margin-bottom: 10px; font-weight: 600; }
         #results-area h1:first-child, #results-area h2:first-child { margin-top: 0; }
         #results-area p { margin-bottom: 12px; }
         #results-area ul, #results-area ol { margin-bottom: 15px; padding-left: 25px; }
         #results-area li { margin-bottom: 5px; }
-        #results-area strong { color: #fff; font-weight: 600; }
-        #results-area code { background: rgba(255,255,255,0.1); padding: 2px 6px; border-radius: 4px; font-family: monospace; font-size: 14px;}
+        #results-area strong { color: var(--teal); font-weight: 600; }
+        #results-area code { background: rgba(255,255,255,0.1); padding: 2px 6px; border-radius: 4px; font-family: monospace; color: var(--cyan); }
 
-        /* Estilo da Assinatura (Footer) */
-        .dev-footer {
-            color: rgba(255, 255, 255, 0.6);
-            font-size: 14px;
-            text-align: center;
-            z-index: 10;
+        .dev-footer { color: rgba(255, 255, 255, 0.6); font-size: 14px; text-align: center; z-index: 10; }
+        .dev-footer a { color: var(--cyan); font-weight: 700; text-decoration: none; transition: color 0.3s ease; }
+        .dev-footer a:hover { color: var(--text-main); text-decoration: underline; }
+        
+        .cloud-badge {
+            font-size: 11px; background: rgba(14, 165, 233, 0.2); color: var(--cyan);
+            padding: 3px 8px; border-radius: 10px; border: 1px solid rgba(14, 165, 233, 0.4);
+            margin-left: 8px; display: inline-flex; align-items: center; gap: 4px;
         }
 
-        .dev-footer a {
-            color: #60a5fa; /* Equivalente ao text-blue-400 */
-            font-weight: 700;
-            text-decoration: none;
-            transition: color 0.3s ease;
+        .modal-overlay {
+            position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
+            background: rgba(0, 0, 0, 0.7); backdrop-filter: blur(8px);
+            display: flex; justify-content: center; align-items: center;
+            z-index: 9999; opacity: 0; pointer-events: none; transition: all 0.3s ease;
+        }
+        
+        .modal-overlay.active { opacity: 1; pointer-events: all; }
+
+        .modal-card {
+            background: var(--dark-bg); border: 1px solid var(--glass-border);
+            border-radius: 24px; padding: 30px; width: 90%; max-width: 400px;
+            text-align: center; transform: translateY(30px) scale(0.95);
+            transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            box-shadow: 0 25px 50px rgba(0,0,0,0.6);
         }
 
-        .dev-footer a:hover {
-            color: #93c5fd;
-            text-decoration: underline;
+        .modal-overlay.active .modal-card { transform: translateY(0) scale(1); }
+
+        .modal-icon-container {
+            width: 60px; height: 60px; border-radius: 50%; display: flex;
+            align-items: center; justify-content: center; margin: 0 auto 15px;
+            background: rgba(255,255,255,0.05);
         }
 
+        .modal-icon { width: 32px; height: 32px; }
+        .modal-icon.error { color: var(--error); filter: drop-shadow(0 0 8px rgba(239, 68, 68, 0.5)); }
+        .modal-icon.success { color: var(--success); filter: drop-shadow(0 0 8px rgba(16, 185, 129, 0.5)); }
+        .modal-icon.info { color: var(--cyan); filter: drop-shadow(0 0 8px rgba(6, 182, 212, 0.5)); }
+
+        .modal-title { font-size: 22px; font-weight: 600; color: white; margin-bottom: 10px; }
+        .modal-message { font-size: 15px; color: var(--text-muted); margin-bottom: 25px; line-height: 1.5; }
+
+        .btn-modal-close {
+            background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2);
+            color: white; padding: 12px 24px; border-radius: 12px; font-weight: 500;
+            cursor: pointer; transition: all 0.2s; width: 100%; font-size: 16px;
+        }
+
+        .btn-modal-close:hover { background: rgba(255,255,255,0.2); transform: translateY(-2px); }
+        .btn-modal-close.primary { background: linear-gradient(135deg, var(--blue), var(--cyan)); border: none; }
+        .btn-modal-close.primary:hover { box-shadow: 0 5px 15px rgba(6, 182, 212, 0.4); }
     </style>
 </head>
 <body>
 
-    <div class="bg-blob blob-1"></div>
-    <div class="bg-blob blob-2"></div>
+    <div class="glow glow-1"></div>
+    <div class="glow glow-2"></div>
 
     <div class="glass-card">
         <div class="header">
-            <div class="title-wrapper">
-                <h1 class="title">Assistente Personalizável</h1>
-                <i data-lucide="sparkles" class="sparkle-icon"></i>
+            <h1 class="title"><i data-lucide="brain-circuit"></i> Gemma AI</h1>
+            <p class="subtitle">Crie um assistente especialista com os seus próprios documentos</p>
+        </div>
+
+        <div class="input-group">
+            <label><i data-lucide="file-text"></i> 1. Base de Conhecimento (Opcional)</label>
+            <label class="doc-upload" for="file-upload">
+                <i data-lucide="folder-plus" class="upload-icon"></i>
+                <h3 style="font-weight: 500;">Adicionar Documentos</h3>
+                <p style="font-size: 13px; color: var(--text-muted); margin-top: 5px;">Clica para anexar ficheiros de treino (PDF, TXT, Imagem)</p>
+            </label>
+            <input type="file" id="file-upload" multiple accept=".txt,.pdf,.md,image/*">
+            <div class="file-list" id="file-list"></div>
+        </div>
+
+        <div class="input-group">
+            <label>
+                <i data-lucide="users"></i> 2. Especialista (Persona) 
+                <span id="cloud-status" class="cloud-badge" style="display:none;"><i data-lucide="cloud" style="width:12px; height:12px;"></i> Sincronizado</span>
+            </label>
+            <div class="flex-row">
+                <select id="persona-select" class="custom-select">
+                    <option value="">A carregar especialistas...</option>
+                </select>
+                <button id="btn-toggle-persona" class="btn-icon" title="Criar Nova Persona">
+                    <i data-lucide="plus"></i>
+                </button>
             </div>
-            <p class="subtitle">Modelo: <strong>Especialista em Operações (NFE)</strong></p>
+            
+            <div id="new-persona-box" class="new-persona-box">
+                <input type="text" id="new-persona-name" class="custom-input" placeholder="Nome da Persona (Ex: Crítico de Manhwa)">
+                <textarea id="new-persona-prompt" rows="3" placeholder="Comporta-te como um especialista em..."></textarea>
+                <button id="btn-save-persona" class="btn-train small">
+                    <i data-lucide="cloud-upload" id="save-icon"></i> <span id="save-text">Guardar na Nuvem</span>
+                </button>
+            </div>
         </div>
 
-        <textarea id="text-input" placeholder="Digite seu comando, cole um texto ou anexe uma imagem abaixo..."></textarea>
-
-        <div class="upload-area" id="drop-zone">
-            <input type="file" id="file-input" accept="image/*">
-            <i data-lucide="cloud-upload" class="upload-icon"></i>
-            <h3 class="upload-text">Envie a Nota Fiscal</h3>
-            <p class="upload-hint">Arraste a imagem para cá ou clique para procurar</p>
+        <div class="input-group">
+            <label><i data-lucide="message-circle"></i> 3. Faz a tua Pergunta</label>
+            <textarea id="user-query" rows="3" placeholder="O que queres saber?"></textarea>
         </div>
 
-        <div id="image-preview-container">
-            <img id="image-preview" src="" alt="Preview">
-            <button id="remove-image" title="Remover imagem">
-                <i data-lucide="x" style="width: 18px; height: 18px;"></i>
-            </button>
-        </div>
-
-        <button class="btn-magic" id="btn-analyze" disabled>
-            <span id="btn-text">Consultar com IA</span>
-            <i data-lucide="wand-2" id="btn-icon"></i>
+        <button class="btn-train" id="btn-submit">
+            <span id="btn-text">Iniciar Processamento</span>
+            <i data-lucide="zap" id="btn-icon"></i>
             <div class="loader" id="loader"></div>
         </button>
 
@@ -364,135 +323,247 @@
     </div>
 
     <footer class="dev-footer">
-        Desenvolvido por <a href="https://github.com/Luzigering" target="_blank">Gering</a> • Tecnologia e operações
+        &copy; 2026 Desenvolvido por <a href="https://portfolio-fullstack-liart.vercel.app/" target="_blank">Gering</a> • Todos os direitos reservados.
     </footer>
 
-    <script>
+    <div class="modal-overlay" id="customModal">
+        <div class="modal-card">
+            <div class="modal-icon-container" id="modal-icon-wrapper">
+            </div>
+            <h2 class="modal-title" id="modalTitle">Aviso</h2>
+            <p class="modal-message" id="modalMessage">Mensagem do sistema.</p>
+            <button class="btn-modal-close primary" onclick="fecharModal()">Entendido</button>
+        </div>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getAuth, signInAnonymously, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, collection, onSnapshot, addDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
         lucide.createIcons();
 
-        const dropZone = document.getElementById('drop-zone');
-        const fileInput = document.getElementById('file-input');
-        const previewContainer = document.getElementById('image-preview-container');
-        const imagePreview = document.getElementById('image-preview');
-        const removeImageBtn = document.getElementById('remove-image');
-        const btnAnalyze = document.getElementById('btn-analyze');
+        // Elementos UI
+        const fileUpload = document.getElementById('file-upload');
+        const fileList = document.getElementById('file-list');
+        const btnSubmit = document.getElementById('btn-submit');
         const btnText = document.getElementById('btn-text');
         const btnIcon = document.getElementById('btn-icon');
         const loader = document.getElementById('loader');
         const resultsArea = document.getElementById('results-area');
-        const textInput = document.getElementById('text-input');
+        const userQuery = document.getElementById('user-query');
+        const personaSelect = document.getElementById('persona-select');
+        const btnTogglePersona = document.getElementById('btn-toggle-persona');
+        const newPersonaBox = document.getElementById('new-persona-box');
+        const btnSavePersona = document.getElementById('btn-save-persona');
+        const newPersonaName = document.getElementById('new-persona-name');
+        const newPersonaPrompt = document.getElementById('new-persona-prompt');
+        const cloudStatus = document.getElementById('cloud-status');
+        const saveIcon = document.getElementById('save-icon');
 
-        let currentFile = null;
+        window.mostrarModal = function(titulo, mensagem, tipo = 'info') {
+            document.getElementById('modalTitle').innerText = titulo;
+            document.getElementById('modalMessage').innerText = mensagem;
+            
+            let iconName = 'info';
+            if (tipo === 'error') iconName = 'alert-triangle';
+            if (tipo === 'success') iconName = 'check-circle-2';
+            
+            document.getElementById('modal-icon-wrapper').innerHTML = `<i data-lucide="${iconName}" class="modal-icon ${tipo}"></i>`;
+            lucide.createIcons();
+            
+            document.getElementById('customModal').classList.add('active');
+        }
 
-        function checkSubmitState() {
-            if (currentFile || textInput.value.trim() !== '') {
-                btnAnalyze.disabled = false;
+        window.fecharModal = function() {
+            document.getElementById('customModal').classList.remove('active');
+        }
+
+        let selectedFiles = [];
+
+        let defaultPersonas = [
+            { id: 'default', nome: 'Especialista Padrão', prompt: 'És um assistente de IA focado na extracção e análise de documentos fornecidos pelo utilizador. Responde com clareza usando formatação Markdown.' },
+            { id: 'logistica', nome: 'Especialista em Operações (Logística)', prompt: 'És um Especialista em Operações de elite focado em logística, eficiência e cadeia de abastecimento. Responde de forma directa e técnica, resolvendo gargalos.' },
+            { id: 'otaku', nome: 'Crítico de Obras (Anime/Manhwa)', prompt: 'És um conhecedor profundo de animes e manhwas como Watamote, School Days, Death Note e Lookism. As tuas análises focam-se no lado psicológico das personagens.' },
+        ];
+
+        let customPersonas = []; 
+        let todasPersonas = [...defaultPersonas];
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyA8wDyffpN0qUpS2SasyHUlcujQLCYt0zM",
+            authDomain: "ias-personalizadas.firebaseapp.com",
+            projectId: "ias-personalizadas",
+            storageBucket: "ias-personalizadas.firebasestorage.app",
+            messagingSenderId: "77860659238",
+            appId: "1:77860659238:web:7dcaf8e0dcf2a1f7a746e7",
+            measurementId: "G-5TEZ65KG58"
+        };
+        
+        const minhaAppId = 'gemma-ai'; 
+        let db, auth;
+
+        async function initCloud() {
+            try {
+                const app = initializeApp(firebaseConfig);
+                auth = getAuth(app);
+                db = getFirestore(app);
+
+                await signInAnonymously(auth);
+
+                onAuthStateChanged(auth, (user) => {
+                    if (!user) return;
+                    
+                    console.log("%c🔥 O SEU UID DE SEGURANÇA É:", "color: #ef4444; font-size: 16px; font-weight: bold;");
+                    console.log("%c" + user.uid, "color: #06b6d4; font-size: 18px; font-weight: bold; background: #0f172a; padding: 5px;");
+                    console.log("Cole esse código lá nas Regras (Rules) do Firestore para blindar sua nuvem!");
+
+                    cloudStatus.style.display = 'inline-flex';
+                    lucide.createIcons();
+
+                    const personasRef = collection(db, 'artifacts', minhaAppId, 'users', user.uid, 'personas');
+                    onSnapshot(personasRef, (snapshot) => {
+                        customPersonas = [];
+                        snapshot.forEach(doc => {
+                            customPersonas.push({ id: doc.id, ...doc.data() });
+                        });
+                        atualizarLista();
+                    }, (error) => {
+                        console.error("Firebase bloqueou a leitura:", error);
+                        atualizarLista();
+                    });
+                });
+            } catch(e) {
+                console.warn("Erro ao ligar ao Firebase. A utilizar apenas a memória.", e);
+                atualizarLista();
+            }
+        }
+
+        function atualizarLista() {
+            todasPersonas = [...defaultPersonas, ...customPersonas];
+            personaSelect.innerHTML = '';
+            todasPersonas.forEach((p, index) => {
+                const option = document.createElement('option');
+                option.value = index;
+                option.textContent = p.nome;
+                personaSelect.appendChild(option);
+            });
+            
+            if (todasPersonas.length > defaultPersonas.length) {
+                personaSelect.value = todasPersonas.length - 1; 
+            }
+        }
+
+        initCloud();
+
+        btnTogglePersona.addEventListener('click', () => {
+            if (newPersonaBox.style.display === 'flex') {
+                newPersonaBox.style.display = 'none';
             } else {
-                btnAnalyze.disabled = true;
+                newPersonaBox.style.display = 'flex';
+                newPersonaName.focus();
             }
-        }
-
-        textInput.addEventListener('input', checkSubmitState);
-
-        ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
-            dropZone.addEventListener(eventName, preventDefaults, false);
         });
 
-        function preventDefaults(e) {
-            e.preventDefault();
-            e.stopPropagation();
-        }
+        btnSavePersona.addEventListener('click', async () => {
+            const nome = newPersonaName.value.trim();
+            const prompt = newPersonaPrompt.value.trim();
 
-        ['dragenter', 'dragover'].forEach(eventName => {
-            dropZone.addEventListener(eventName, () => dropZone.classList.add('dragover'), false);
-        });
+            if (!nome || !prompt) {
+                mostrarModal("Preenchimento Incompleto", "Tens de dar um nome e um comportamento para a tua nova Persona!", "error");
+                return;
+            }
 
-        ['dragleave', 'drop'].forEach(eventName => {
-            dropZone.addEventListener(eventName, () => dropZone.classList.remove('dragover'), false);
-        });
+            const nomeFormatado = '✨ ' + nome;
+            saveIcon.setAttribute('data-lucide', 'loader-2');
+            saveIcon.classList.add('loader');
+            lucide.createIcons();
 
-        dropZone.addEventListener('drop', (e) => {
-            const dt = e.dataTransfer;
-            const files = dt.files;
-            handleFiles(files);
-        });
-
-        fileInput.addEventListener('change', function() {
-            handleFiles(this.files);
-        });
-
-        function handleFiles(files) {
-            if (files.length > 0) {
-                const file = files[0];
-                if (file.type.startsWith('image/')) {
-                    currentFile = file;
-                    showPreview(file);
-                } else {
-                    alert('Por favor, envie apenas arquivos de imagem.');
+            if (auth && auth.currentUser) {
+                try {
+                    await addDoc(collection(db, 'artifacts', minhaAppId, 'users', auth.currentUser.uid, 'personas'), {
+                        nome: nomeFormatado,
+                        prompt: prompt,
+                        createdAt: new Date().toISOString()
+                    });
+                    mostrarModal("Sucesso", `O especialista "${nome}" foi guardado na Nuvem!`, "success");
+                } catch(e) {
+                    console.error("Erro do Firebase:", e);
+                    mostrarModal("Permissão Negada", "O Firebase bloqueou o save. Aperte F12, pegue o seu UID no console e confira se ele está igual nas Regras do Firestore!", "error");
+                   
+                    salvarLocal(nomeFormatado, prompt, nome);
                 }
+            } else {
+                salvarLocal(nomeFormatado, prompt, nome);
             }
-        }
 
-        function showPreview(file) {
-            const reader = new FileReader();
-            reader.onload = (e) => {
-                imagePreview.src = e.target.result;
-                dropZone.style.display = 'none';
-                previewContainer.style.display = 'block';
-                checkSubmitState();
-                resultsArea.style.display = 'none'; 
-            }
-            reader.readAsDataURL(file);
-        }
-
-        removeImageBtn.addEventListener('click', () => {
-            currentFile = null;
-            fileInput.value = '';
-            imagePreview.src = '';
-            previewContainer.style.display = 'none';
-            dropZone.style.display = 'block';
-            checkSubmitState();
-            resultsArea.style.display = 'none';
+            newPersonaName.value = '';
+            newPersonaPrompt.value = '';
+            newPersonaBox.style.display = 'none';
+            saveIcon.setAttribute('data-lucide', 'cloud-upload');
+            saveIcon.classList.remove('loader');
+            lucide.createIcons();
         });
 
-        btnAnalyze.addEventListener('click', async () => {
-            if (!currentFile && textInput.value.trim() === '') return;
+        function salvarLocal(nomeF, promptF, nomeOriginal) {
+            customPersonas.push({ id: 'local_' + Date.now(), nome: nomeF, prompt: promptF });
+            atualizarLista();
+            mostrarModal("Modo Offline", `Persona "${nomeOriginal}" foi guardada apenas na memória local do navegador (será apagada ao fechar).`, "info");
+        }
 
-            btnAnalyze.disabled = true;
+        fileUpload.addEventListener('change', function(e) {
+            fileList.innerHTML = '';
+            selectedFiles = Array.from(this.files);
+
+            if(selectedFiles.length > 0) {
+                fileList.style.display = 'block';
+                selectedFiles.forEach(file => {
+                    fileList.innerHTML += `<div class="file-item"><i data-lucide="check-circle-2"></i><span>${file.name}</span></div>`;
+                });
+                lucide.createIcons();
+            } else {
+                fileList.style.display = 'none';
+            }
+        });
+
+        btnSubmit.addEventListener('click', async () => {
+            const queryText = userQuery.value.trim();
+            
+            if (selectedFiles.length === 0 && queryText === '') {
+                mostrarModal("Ação Necessária", "Tens de anexar um documento ou escrever uma pergunta para o assistente!", "error");
+                return;
+            }
+
+            btnSubmit.disabled = true;
             btnText.innerText = 'Processando...';
             btnIcon.style.display = 'none';
             loader.style.display = 'block';
             resultsArea.style.display = 'none';
 
             const formData = new FormData();
-            if (currentFile) {
-                formData.append('file', currentFile);
-            }
-            if (textInput.value.trim() !== '') {
-                formData.append('texto', textInput.value.trim());
-            }
+            selectedFiles.forEach(file => formData.append('files', file));
+            formData.append('user_query', queryText);
+
+            const personaIndex = personaSelect.value;
+            const promptDaPersona = todasPersonas[personaIndex].prompt;
+            formData.append('system_prompt', promptDaPersona);
 
             try {
-                const response = await fetch('/api/consultar-assistente', {
-                    method: 'POST',
-                    body: formData
-                });
-
+                const response = await fetch('/api/gemma-chat', { method: 'POST', body: formData });
                 const data = await response.json();
 
                 if (data.sucesso) {
                     resultsArea.innerHTML = marked.parse(data.resposta);
                     resultsArea.style.display = 'block';
                 } else {
-                    alert('Erro na análise: ' + data.erro);
+                    mostrarModal("Erro do Servidor", data.erro, "error");
                 }
-
             } catch (error) {
                 console.error('Erro na requisição:', error);
-                alert('Falha ao conectar com o servidor. Verifique se a API está rodando.');
+                mostrarModal("Sem Conexão", "Falha de conexão. Confirma se o teu Uvicorn está a correr no terminal do Ubuntu.", "error");
             } finally {
-                btnAnalyze.disabled = false;
-                btnText.innerText = 'Consultar com IA';
+                btnSubmit.disabled = false;
+                btnText.innerText = 'Iniciar Processamento';
                 btnIcon.style.display = 'block';
                 loader.style.display = 'none';
             }
