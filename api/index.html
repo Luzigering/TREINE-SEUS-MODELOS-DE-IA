@@ -337,13 +337,10 @@
     </div>
 
     <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-        import { getAuth, signInAnonymously, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-        import { getFirestore, collection, onSnapshot, addDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
-
+       
         lucide.createIcons();
 
-        // Elementos UI
+       
         const fileUpload = document.getElementById('file-upload');
         const fileList = document.getElementById('file-list');
         const btnSubmit = document.getElementById('btn-submit');
@@ -382,62 +379,13 @@
         let selectedFiles = [];
 
         let defaultPersonas = [
-            { id: 'default', nome: 'Especialista Padrão', prompt: 'És um assistente de IA focado na extracção e análise de documentos fornecidos pelo utilizador. Responde com clareza usando formatação Markdown.' },
+            { id: 'default', nome: 'Especialista Padrão', prompt: 'É um assistente de IA focado na extracção e análise de documentos fornecidos pelo utilizador. Responde com clareza usando formatação Markdown.' },
             { id: 'logistica', nome: 'Especialista em Operações (Logística)', prompt: 'És um Especialista em Operações de elite focado em logística, eficiência e cadeia de abastecimento. Responde de forma directa e técnica, resolvendo gargalos.' },
-            { id: 'otaku', nome: 'Crítico de Obras (Anime/Manhwa)', prompt: 'És um conhecedor profundo de animes e manhwas como Watamote, School Days, Death Note e Lookism. As tuas análises focam-se no lado psicológico das personagens.' },
+            { id: 'otaku', nome: 'Crítico de Obras (Anime/Manhwa)', prompt: 'É um conhecedor profundo de animes e manhwas como Watamote, School Days, Death Note e Lookism. As suas análises focam-se no lado psicológico das personagens.' },
         ];
 
         let customPersonas = []; 
         let todasPersonas = [...defaultPersonas];
-
-        const firebaseConfig = {
-            apiKey: "AIzaSyA8wDyffpN0qUpS2SasyHUlcujQLCYt0zM",
-            authDomain: "ias-personalizadas.firebaseapp.com",
-            projectId: "ias-personalizadas",
-            storageBucket: "ias-personalizadas.firebasestorage.app",
-            messagingSenderId: "77860659238",
-            appId: "1:77860659238:web:7dcaf8e0dcf2a1f7a746e7",
-            measurementId: "G-5TEZ65KG58"
-        };
-        
-        const minhaAppId = 'gemma-ai'; 
-        let db, auth;
-
-        async function initCloud() {
-            try {
-                const app = initializeApp(firebaseConfig);
-                auth = getAuth(app);
-                db = getFirestore(app);
-
-                await signInAnonymously(auth);
-
-                onAuthStateChanged(auth, (user) => {
-                    if (!user) return;
-                    
-                    console.log("%c🔥 O SEU UID DE SEGURANÇA É:", "color: #ef4444; font-size: 16px; font-weight: bold;");
-                    console.log("%c" + user.uid, "color: #06b6d4; font-size: 18px; font-weight: bold; background: #0f172a; padding: 5px;");
-                    console.log("Cole esse código lá nas Regras (Rules) do Firestore para blindar sua nuvem!");
-
-                    cloudStatus.style.display = 'inline-flex';
-                    lucide.createIcons();
-
-                    const personasRef = collection(db, 'artifacts', minhaAppId, 'users', user.uid, 'personas');
-                    onSnapshot(personasRef, (snapshot) => {
-                        customPersonas = [];
-                        snapshot.forEach(doc => {
-                            customPersonas.push({ id: doc.id, ...doc.data() });
-                        });
-                        atualizarLista();
-                    }, (error) => {
-                        console.error("Firebase bloqueou a leitura:", error);
-                        atualizarLista();
-                    });
-                });
-            } catch(e) {
-                console.warn("Erro ao ligar ao Firebase. A utilizar apenas a memória.", e);
-                atualizarLista();
-            }
-        }
 
         function atualizarLista() {
             todasPersonas = [...defaultPersonas, ...customPersonas];
@@ -454,7 +402,23 @@
             }
         }
 
-        initCloud();
+        async function carregarPersonas() {
+            try {
+                const response = await fetch('/api/personas');
+                const data = await response.json();
+                
+                if (data.sucesso && data.personas) {
+                    customPersonas = data.personas;
+                    cloudStatus.style.display = 'inline-flex';
+                }
+            } catch (e) {
+                console.warn("Erro ao carregar personas do MongoDB", e);
+            }
+            atualizarLista();
+        }
+
+        
+        carregarPersonas();
 
         btnTogglePersona.addEventListener('click', () => {
             if (newPersonaBox.style.display === 'flex') {
@@ -465,7 +429,7 @@
             }
         });
 
-        btnSavePersona.addEventListener('click', async () => {
+       btnSavePersona.addEventListener('click', async () => {
             const nome = newPersonaName.value.trim();
             const prompt = newPersonaPrompt.value.trim();
 
@@ -479,22 +443,57 @@
             saveIcon.classList.add('loader');
             lucide.createIcons();
 
-            if (auth && auth.currentUser) {
-                try {
-                    await addDoc(collection(db, 'artifacts', minhaAppId, 'users', auth.currentUser.uid, 'personas'), {
-                        nome: nomeFormatado,
-                        prompt: prompt,
-                        createdAt: new Date().toISOString()
+            let fileUrl = null;
+
+            try {
+                // SE HOUVER FICHEIRO, FAZ O UPLOAD PRIMEIRO
+                if (selectedFiles.length > 0) {
+                    mostrarModal("Aguarde", "A enviar documento para a nuvem...", "info");
+                    const uploadData = new FormData();
+                    uploadData.append('file', selectedFiles[0]); // Pega apenas o primeiro ficheiro
+                    
+                    const uploadRes = await fetch('/api/upload', {
+                        method: 'POST',
+                        body: uploadData
                     });
-                    mostrarModal("Sucesso", `O especialista "${nome}" foi guardado na Nuvem!`, "success");
-                } catch(e) {
-                    console.error("Erro do Firebase:", e);
-                    mostrarModal("Permissão Negada", "O Firebase bloqueou o save. Aperte F12, pegue o seu UID no console e confira se ele está igual nas Regras do Firestore!", "error");
-                   
-                    salvarLocal(nomeFormatado, prompt, nome);
+                    const uploadResult = await uploadRes.json();
+                    
+                    if (uploadResult.sucesso) {
+                        fileUrl = uploadResult.url; // Pega o link gerado pela Vercel!
+                    } else {
+                        throw new Error("Erro ao guardar o ficheiro: " + uploadResult.erro);
+                    }
                 }
-            } else {
-                salvarLocal(nomeFormatado, prompt, nome);
+
+                // AGORA GUARDA A PERSONA NO MONGODB
+                const response = await fetch('/api/personas', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ 
+                        nome: nomeFormatado, 
+                        prompt: prompt,
+                        file_url: fileUrl // Guarda o link junto com a persona!
+                    })
+                });
+                
+                const data = await response.json();
+
+                if (data.sucesso) {
+                    customPersonas.push({ nome: nomeFormatado, prompt: prompt, file_url: fileUrl });
+                    atualizarLista();
+                    mostrarModal("Sucesso", `O especialista "${nome}" foi guardado na nuvem!`, "success");
+                    
+                    // Limpa os ficheiros selecionados após guardar
+                    selectedFiles = [];
+                    fileList.innerHTML = '';
+                    fileList.style.display = 'none';
+                    fileUpload.value = '';
+                } else {
+                    mostrarModal("Erro", "Falha ao guardar no banco de dados.", "error");
+                }
+            } catch(e) {
+                console.error("Erro na API:", e);
+                mostrarModal("Erro Crítico", e.message, "error");
             }
 
             newPersonaName.value = '';
@@ -544,10 +543,15 @@
             selectedFiles.forEach(file => formData.append('files', file));
             formData.append('user_query', queryText);
 
-            const personaIndex = personaSelect.value;
-            const promptDaPersona = todasPersonas[personaIndex].prompt;
-            formData.append('system_prompt', promptDaPersona);
+           const personaIndex = personaSelect.value;
+            const personaSelecionada = todasPersonas[personaIndex];
+            
+            formData.append('system_prompt', personaSelecionada.prompt);
 
+    
+            if (personaSelecionada.file_url) {
+                formData.append('persona_file_url', personaSelecionada.file_url);
+            }
             try {
                 const response = await fetch('/api/gemma-chat', { method: 'POST', body: formData });
                 const data = await response.json();
@@ -560,7 +564,7 @@
                 }
             } catch (error) {
                 console.error('Erro na requisição:', error);
-                mostrarModal("Sem Conexão", "Falha de conexão. Confirma se o teu Uvicorn está a correr no terminal do Ubuntu.", "error");
+                mostrarModal("Sem Conexão", "Falha de conexão. Confirma se o teu Uvicorn está a correr no terminal.", "error");
             } finally {
                 btnSubmit.disabled = false;
                 btnText.innerText = 'Iniciar Processamento';
@@ -568,6 +572,7 @@
                 loader.style.display = 'none';
             }
         });
+    
     </script>
 </body>
 </html>
