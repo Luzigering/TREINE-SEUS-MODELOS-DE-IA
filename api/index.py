@@ -78,11 +78,20 @@ async def gemma_chat(
     files: Optional[List[UploadFile]] = File(None),
     system_prompt: Optional[str] = Form(""),
     user_query: Optional[str] = Form(""),
-    persona_file_url: Optional[str] = Form(None) 
+    persona_file_url: Optional[str] = Form(None),
+    persona_nome: Optional[str] = Form(None)
 ):
     if not API_KEY:
         raise HTTPException(status_code=500, detail="API Key não configurada no Vercel/Ambiente")
-
+        
+    if persona_nome and personas_collection is not None:
+        persona_db = await personas_collection.find_one({"nome": persona_nome})
+        if persona_db:
+            system_prompt = persona_db.get("prompt", system_prompt)
+            persona_file_url = persona_db.get("file_url", persona_file_url)
+        else:
+            return {"sucesso": False, "erro": f"O modelo '{persona_nome}' não foi encontrado no banco de dados."}
+            
     if not files and not user_query and not persona_file_url:
         raise HTTPException(status_code=400, detail="Envia documentos, seleciona uma persona com treino ou faz uma pergunta.")
 
