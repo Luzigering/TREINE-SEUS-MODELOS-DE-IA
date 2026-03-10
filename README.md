@@ -8,3 +8,5 @@ Passo para rodar pós clone:
 pip install -r requirements.txt
 uvicorn api.index:app --reload --env-file .env
 
+Ainda será implementada uma área de mais alta privacidade para tratar de dados mais sensíveis;
+
