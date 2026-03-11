@@ -5,7 +5,7 @@ from typing import Optional, List
 from google import genai
 from google.genai import types
 from motor.motor_asyncio import AsyncIOMotorClient
-from pydantic import BaseModel
+from pydantic import BaseModel 
 import mimetypes
 from vercel.blob import AsyncBlobClient
 import httpx
@@ -165,7 +165,25 @@ async def gemma_chat(
                 temperature=0.3 
             )
         )
-  
+      @app.delete("/api/personas")
+async def delete_persona(nome: str):
+    if personas_collection is None:
+        return {"sucesso": False, "erro": "Banco de dados não configurado"}
+    
+    persona = await personas_collection.find_one({"nome": nome})
+    if not persona:
+        return {"sucesso": False, "erro": "Persona não encontrada"}
+        
+    if persona.get("file_url"):
+        try:
+            from vercel_blob import AsyncBlobClient 
+            blob_client = AsyncBlobClient()
+            await blob_client.delete(persona["file_url"])
+        except Exception as e:
+            print(f"Aviso: Não foi possível apagar o PDF na Vercel. Erro: {e}")
+            
+    await personas_collection.delete_one({"nome": nome})
+    return {"sucesso": True, "mensagem": "Persona apagada com sucesso!"}
         return {"sucesso": True, "resposta": response.text}
         
     except Exception as e:
