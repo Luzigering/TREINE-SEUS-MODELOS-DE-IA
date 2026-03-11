@@ -99,8 +99,7 @@ async def gemma_chat(
             
     if not files and not user_query and not persona_file_url:
         raise HTTPException(status_code=400, detail="Envia documentos, seleciona uma persona com treino ou faz uma pergunta.")
-
-   try:
+        try:
         CHOSEN_KEY = random.choice(API_KEYS_LIST)
         client = genai.Client(api_key=CHOSEN_KEY)
         
