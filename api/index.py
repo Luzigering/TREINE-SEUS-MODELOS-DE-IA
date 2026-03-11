@@ -26,6 +26,8 @@ MONGO_URI = os.environ.get("MONGO_URI")
 client = AsyncIOMotorClient(MONGO_URI) if MONGO_URI else None
 db = client.treinamento_ia if client is not None else None
 personas_collection = db.personas if db is not None else None
+conversas_collection = db.conversas if db is not None else None
+
 class Persona(BaseModel):
     nome: str
     prompt: str
@@ -79,7 +81,8 @@ async def gemma_chat(
     system_prompt: Optional[str] = Form(""),
     user_query: Optional[str] = Form(""),
     persona_file_url: Optional[str] = Form(None),
-    persona_nome: Optional[str] = Form(None)
+    persona_nome: Optional[str] = Form(None),
+    session_id: Optional[str] = Form(None)
 ):
     if not API_KEY:
         raise HTTPException(status_code=500, detail="API Key não configurada no Vercel/Ambiente")
@@ -149,8 +152,50 @@ async def gemma_chat(
             except Exception as e:
                 print(f"Aviso: Erro ao tentar descarregar o ficheiro da Persona na nuvem. Erro: {e}")
        
+       historico_texto = ""
+        if session_id and conversas_collection is not None:
+            
+            sessao = await conversas_collection.find_one({"session_id": session_id, "persona_nome": persona_nome})
+            if sessao and "mensagens" in sessao:
+                historico_texto = "HISTÓRICO DA CONVERSA RECENTE COM ESTE UTILIZADOR:\n"
+                
+                for msg in sessao["mensagens"][-6:]: 
+                    historico_texto += f"{msg['role']}: {msg['text']}\n"
+                historico_texto += "\n---\nAGORA RESPONDE A ESTA NOVA PERGUNTA:\n"
+                
         if user_query:
-            conteudos.append(f"Pergunta do utilizador: {user_query}")
+            
+            texto_final = f"{historico_texto}Pergunta do utilizador: {user_query}"
+            conteudos.append(texto_final)
+        else:
+            conteudos.append("Por favor, faz um resumo dos documentos fornecidos com base na tua especialidade.")
+
+        if not system_prompt:
+            system_prompt = "Você é um assistente de IA focado na extracção e análise de documentos fornecidos pelo utilizador. Responde com clareza, seguindo à risca as suas diretrizes."
+
+        
+        response = client.models.generate_content(
+            model="gemini-2.5-flash", 
+            contents=conteudos,
+            config=types.GenerateContentConfig(
+                system_instruction=system_prompt,
+                temperature=0.3 
+            )
+        )
+        
+       
+        if session_id and conversas_collection is not None and user_query:
+            nova_mensagem_user = {"role": "Utilizador", "text": user_query}
+            nova_mensagem_model = {"role": "Assistente", "text": response.text}
+            
+            # Upsert=True significa: se a pessoa não existir no banco, cria a pasta dela. Se existir, apenas adiciona no final!
+            await conversas_collection.update_one(
+                {"session_id": session_id, "persona_nome": persona_nome},
+                {"$push": {"mensagens": {"$each": [nova_mensagem_user, nova_mensagem_model]}}},
+                upsert=True 
+            )
+            
+        return {"sucesso": True, "resposta": response.text}
         else:
             conteudos.append("Por favor, faz um resumo dos documentos fornecidos com base na tua especialidade.")
 
