@@ -155,7 +155,7 @@ async def gemma_chat(
             conteudos.append("Por favor, faz um resumo dos documentos fornecidos com base na tua especialidade.")
 
         if not system_prompt:
-            system_prompt = "És um assistente de IA focado na extracção e análise de documentos fornecidos pelo utilizador. Responde com clareza usando formatação Markdown."
+            system_prompt = "Você é um assistente de IA focado na extracção e análise de documentos fornecidos pelo utilizador. Responde com clareza, seguindo á risca suas diretrizes;."
 
         response = client.models.generate_content(
             model="gemini-2.5-flash", 
@@ -165,7 +165,14 @@ async def gemma_chat(
                 temperature=0.3 
             )
         )
-      @app.delete("/api/personas")
+        return {"sucesso": True, "resposta": response.text}
+        
+    except Exception as e:
+        return {"sucesso": False, "erro": str(e)}
+
+
+
+@app.delete("/api/personas")
 async def delete_persona(nome: str):
     if personas_collection is None:
         return {"sucesso": False, "erro": "Banco de dados não configurado"}
@@ -176,7 +183,7 @@ async def delete_persona(nome: str):
         
     if persona.get("file_url"):
         try:
-            from vercel_blob import AsyncBlobClient 
+            from vercel.blob import AsyncBlobClient 
             blob_client = AsyncBlobClient()
             await blob_client.delete(persona["file_url"])
         except Exception as e:
@@ -184,7 +191,3 @@ async def delete_persona(nome: str):
             
     await personas_collection.delete_one({"nome": nome})
     return {"sucesso": True, "mensagem": "Persona apagada com sucesso!"}
-        return {"sucesso": True, "resposta": response.text}
-        
-    except Exception as e:
-        return {"sucesso": False, "erro": str(e)}
