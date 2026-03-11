@@ -102,7 +102,6 @@ async def gemma_chat(
         client = genai.Client(api_key=API_KEY)
         conteudos = []
         
-        
         if files:
             for file in files:
                 contents = await file.read()
@@ -112,23 +111,16 @@ async def gemma_chat(
                 )
                 conteudos.append(file_part)
                 
-        
-    
         if persona_file_url:
             try:
                 blob_token = os.environ.get("BLOB_READ_WRITE_TOKEN")
-                
-               
                 headers = {"Authorization": f"Bearer {blob_token}"}
-                
                 
                 async with httpx.AsyncClient(follow_redirects=True) as http_client:
                     resp = await http_client.get(persona_file_url, headers=headers)
                     
                     if resp.status_code == 200:
                         file_bytes = resp.content
-                        
-                       
                         url_limpa = persona_file_url.split("?")[0]
                         mime_type, _ = mimetypes.guess_type(url_limpa)
                         if not mime_type:
@@ -139,7 +131,6 @@ async def gemma_chat(
                             mime_type=mime_type,
                         )
                         conteudos.append(blob_part)
-                        
                         
                         conteudos.append(
                             "O documento fornecido contém as suas DIRETRIZES DE PERSONA, REGRAS E BASE DE CONHECIMENTO EXCLUSIVA. "
@@ -152,19 +143,17 @@ async def gemma_chat(
             except Exception as e:
                 print(f"Aviso: Erro ao tentar descarregar o ficheiro da Persona na nuvem. Erro: {e}")
        
-       historico_texto = ""
+    
+        historico_texto = ""
         if session_id and conversas_collection is not None:
-            
             sessao = await conversas_collection.find_one({"session_id": session_id, "persona_nome": persona_nome})
             if sessao and "mensagens" in sessao:
                 historico_texto = "HISTÓRICO DA CONVERSA RECENTE COM ESTE UTILIZADOR:\n"
-                
                 for msg in sessao["mensagens"][-6:]: 
                     historico_texto += f"{msg['role']}: {msg['text']}\n"
                 historico_texto += "\n---\nAGORA RESPONDE A ESTA NOVA PERGUNTA:\n"
                 
         if user_query:
-            
             texto_final = f"{historico_texto}Pergunta do utilizador: {user_query}"
             conteudos.append(texto_final)
         else:
@@ -173,7 +162,6 @@ async def gemma_chat(
         if not system_prompt:
             system_prompt = "Você é um assistente de IA focado na extracção e análise de documentos fornecidos pelo utilizador. Responde com clareza, seguindo à risca as suas diretrizes."
 
-        
         response = client.models.generate_content(
             model="gemini-2.5-flash", 
             contents=conteudos,
@@ -188,28 +176,12 @@ async def gemma_chat(
             nova_mensagem_user = {"role": "Utilizador", "text": user_query}
             nova_mensagem_model = {"role": "Assistente", "text": response.text}
             
-            # Upsert=True significa: se a pessoa não existir no banco, cria a pasta dela. Se existir, apenas adiciona no final!
             await conversas_collection.update_one(
                 {"session_id": session_id, "persona_nome": persona_nome},
                 {"$push": {"mensagens": {"$each": [nova_mensagem_user, nova_mensagem_model]}}},
                 upsert=True 
             )
             
-        return {"sucesso": True, "resposta": response.text}
-        else:
-            conteudos.append("Por favor, faz um resumo dos documentos fornecidos com base na tua especialidade.")
-
-        if not system_prompt:
-            system_prompt = "Você é um assistente de IA focado na extracção e análise de documentos fornecidos pelo utilizador. Responde com clareza, seguindo á risca suas diretrizes;."
-
-        response = client.models.generate_content(
-            model="gemini-2.5-flash", 
-            contents=conteudos,
-            config=types.GenerateContentConfig(
-                system_instruction=system_prompt,
-                temperature=0.3 
-            )
-        )
         return {"sucesso": True, "resposta": response.text}
         
     except Exception as e:
