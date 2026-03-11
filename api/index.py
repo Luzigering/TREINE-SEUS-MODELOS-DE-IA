@@ -10,7 +10,7 @@ import mimetypes
 from vercel.blob import AsyncBlobClient
 import httpx
 import os
-
+import random
 app = FastAPI()
 
 app.add_middleware(
@@ -21,7 +21,8 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-API_KEY = os.environ.get("GEMINI_API_KEY")
+API_KEYS_STR = os.environ.get("GEMINI_API_KEYS", "")
+API_KEYS_LIST = [k.strip() for k in API_KEYS_STR.split(",") if k.strip()]
 MONGO_URI = os.environ.get("MONGO_URI")
 client = AsyncIOMotorClient(MONGO_URI) if MONGO_URI else None
 db = client.treinamento_ia if client is not None else None
