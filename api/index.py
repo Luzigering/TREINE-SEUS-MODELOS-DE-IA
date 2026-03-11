@@ -158,7 +158,7 @@ async def gemma_chat(
             system_prompt = "Você é um assistente de IA focado na extracção e análise de documentos fornecidos pelo utilizador. Responde com clareza, seguindo á risca suas diretrizes;."
 
         response = client.models.generate_content(
-            model="gemma-2-9b-it", 
+            model="google/gemma-3-27b-it", 
             contents=conteudos,
             config=types.GenerateContentConfig(
                 system_instruction=system_prompt,
