@@ -165,7 +165,13 @@ async def gemma_chat(
 
         if not system_prompt:
             system_prompt = "Você é um assistente focado em análise de documentos."
-
+            
+            system_prompt += (
+                "\n\nDIRETRIZ DE CONVERSA CONTÍNUA: Como você pode ver no histórico, "
+                "nós já estamos no meio de uma conversa. É ESTRITAMENTE PROIBIDO "
+                "iniciar a sua resposta com saudações (como 'Olá', 'Oi', 'Tudo bem?', "
+                "'Como posso ajudar hoje?'). Vá direto ao ponto e continue a conversa naturalmente."
+            )
         response = genai_client.models.generate_content(
             model="gemini-2.5-flash", 
             contents=conteudos,
