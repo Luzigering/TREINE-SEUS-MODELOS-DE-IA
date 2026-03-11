@@ -1,28 +1,32 @@
+import os
+import random
+import mimetypes
+import httpx
+from typing import Optional, List
+
 from fastapi import FastAPI, File, UploadFile, Form, HTTPException
 from fastapi.responses import HTMLResponse
 from fastapi.middleware.cors import CORSMiddleware
-from typing import Optional, List
+from pydantic import BaseModel
+
 from google import genai
 from google.genai import types
 from motor.motor_asyncio import AsyncIOMotorClient
-from pydantic import BaseModel 
-import mimetypes
 from vercel.blob import AsyncBlobClient
-import httpx
-import os
-import random
+
 app = FastAPI()
 
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"], 
-    allow_credentials=True,
+    allow_credentials=False,
     allow_methods=["*"], 
     allow_headers=["*"],
 )
 
 API_KEYS_STR = os.environ.get("GEMINI_API_KEYS", "")
 API_KEYS_LIST = [k.strip() for k in API_KEYS_STR.split(",") if k.strip()]
+
 MONGO_URI = os.environ.get("MONGO_URI")
 client = AsyncIOMotorClient(MONGO_URI) if MONGO_URI else None
 db = client.treinamento_ia if client is not None else None
@@ -33,6 +37,7 @@ class Persona(BaseModel):
     nome: str
     prompt: str
     file_url: Optional[str] = None
+
 @app.get("/", response_class=HTMLResponse)
 def home():
     try:
@@ -40,6 +45,7 @@ def home():
             return f.read()
     except FileNotFoundError:
         return "<h1>Erro: Ficheiro index.html não encontrado na pasta api!</h1>"
+
 @app.get("/api/personas")
 async def get_personas():
     if personas_collection is None:
@@ -52,17 +58,15 @@ async def get_personas():
 @app.post("/api/upload")
 async def upload_file(file: UploadFile = File(...)):
     try:
-        client = AsyncBlobClient()
+        blob_client = AsyncBlobClient()
         content = await file.read()
         
-       
-        blob = await client.put(
+        blob = await blob_client.put(
             file.filename, 
             content, 
             access="private",
             add_random_suffix=True 
         )
-        
         return {"sucesso": True, "url": blob.url}
     except Exception as e:
         return {"sucesso": False, "erro": str(e)}
@@ -74,7 +78,6 @@ async def create_persona(persona: Persona):
     
     await personas_collection.insert_one(persona.model_dump())
     return {"sucesso": True, "mensagem": "Persona salva na nuvem!"}
-import mimetypes 
 
 @app.post("/api/gemma-chat")
 async def gemma_chat(
@@ -88,7 +91,6 @@ async def gemma_chat(
     if not API_KEYS_LIST:
         raise HTTPException(status_code=500, detail="Nenhuma API Key configurada na Vercel!")
         
-        
     if persona_nome and personas_collection is not None:
         persona_db = await personas_collection.find_one({"nome": persona_nome})
         if persona_db:
@@ -98,10 +100,11 @@ async def gemma_chat(
             return {"sucesso": False, "erro": f"O modelo '{persona_nome}' não foi encontrado no banco de dados."}
             
     if not files and not user_query and not persona_file_url:
-        raise HTTPException(status_code=400, detail="Envia documentos, seleciona uma persona com treino ou faz uma pergunta.")
-        try:
+        raise HTTPException(status_code=400, detail="Envia documentos, seleciona uma persona ou faz uma pergunta.")
+
+    try:
         CHOSEN_KEY = random.choice(API_KEYS_LIST)
-        client = genai.Client(api_key=CHOSEN_KEY)
+        genai_client = genai.Client(api_key=CHOSEN_KEY)
         
         conteudos = []
         
@@ -142,11 +145,9 @@ async def gemma_chat(
                         )
                     else:
                         print(f"Erro Vercel: {resp.status_code} - {resp.text}")
-                        
             except Exception as e:
-                print(f"Aviso: Erro ao tentar descarregar o ficheiro da Persona na nuvem. Erro: {e}")
+                print(f"Aviso: Erro ao tentar descarregar o ficheiro na nuvem. Erro: {e}")
        
-    
         historico_texto = ""
         if session_id and conversas_collection is not None:
             sessao = await conversas_collection.find_one({"session_id": session_id, "persona_nome": persona_nome})
@@ -163,9 +164,9 @@ async def gemma_chat(
             conteudos.append("Por favor, faz um resumo dos documentos fornecidos com base na tua especialidade.")
 
         if not system_prompt:
-            system_prompt = "Você é um assistente de IA focado na extracção e análise de documentos fornecidos pelo utilizador. Responde com clareza, seguindo à risca as suas diretrizes."
+            system_prompt = "Você é um assistente focado em análise de documentos."
 
-        response = client.models.generate_content(
+        response = genai_client.models.generate_content(
             model="gemini-2.5-flash", 
             contents=conteudos,
             config=types.GenerateContentConfig(
@@ -174,7 +175,6 @@ async def gemma_chat(
             )
         )
         
-       
         if session_id and conversas_collection is not None and user_query:
             nova_mensagem_user = {"role": "Utilizador", "text": user_query}
             nova_mensagem_model = {"role": "Assistente", "text": response.text}
@@ -189,8 +189,6 @@ async def gemma_chat(
         
     except Exception as e:
         return {"sucesso": False, "erro": str(e)}
-
-
 
 @app.delete("/api/personas")
 async def delete_persona(nome: str):
