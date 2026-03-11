@@ -85,8 +85,9 @@ async def gemma_chat(
     persona_nome: Optional[str] = Form(None),
     session_id: Optional[str] = Form(None)
 ):
-    if not API_KEY:
-        raise HTTPException(status_code=500, detail="API Key não configurada no Vercel/Ambiente")
+    if not API_KEYS_LIST:
+        raise HTTPException(status_code=500, detail="Nenhuma API Key configurada na Vercel!")
+        
         
     if persona_nome and personas_collection is not None:
         persona_db = await personas_collection.find_one({"nome": persona_nome})
@@ -99,8 +100,10 @@ async def gemma_chat(
     if not files and not user_query and not persona_file_url:
         raise HTTPException(status_code=400, detail="Envia documentos, seleciona uma persona com treino ou faz uma pergunta.")
 
-    try:
-        client = genai.Client(api_key=API_KEY)
+   try:
+        CHOSEN_KEY = random.choice(API_KEYS_LIST)
+        client = genai.Client(api_key=CHOSEN_KEY)
+        
         conteudos = []
         
         if files:
