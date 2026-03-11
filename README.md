@@ -11,3 +11,5 @@ uvicorn api.index:app --reload --env-file .env
 
 Ainda será implementada uma área de mais alta privacidade para tratar de dados mais sensíveis;
 
+-> suporta conversas;
+
